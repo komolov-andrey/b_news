@@ -29,12 +29,10 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        final ListView listView = (ListView) findViewById(R.id.custom_list);
 
         parse p = new parse();
         p.execute();
-
-        final ListView listView = (ListView) findViewById(R.id.custom_list);
-
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -52,7 +50,7 @@ public class MainActivity extends ActionBarActivity {
 
         ArrayList<ListItem> listMockData = new ArrayList<ListItem>();
 
-        for (int i = 0; i < images.length; i++) {
+        for (int i = 0; i < headlines.length; i++) {
             ListItem newsData = new ListItem();
             newsData.setUrl(images[i]);
             newsData.setHeadline(headlines[i]);
@@ -95,7 +93,7 @@ public class MainActivity extends ActionBarActivity {
 
                 Document doc = null;
                 try {
-                    doc = Jsoup.connect("http://www.bronnitsy.ru/news").get();
+                    doc = Jsoup.connect("http://www.bronnitsy.ru/news").userAgent("Chrome").get();
                 } catch (IOException e) {
                 }
                 Element mBody;
@@ -143,9 +141,8 @@ public class MainActivity extends ActionBarActivity {
         protected void onPostExecute(Void result) {
             super.onPostExecute(result);
 
-
             ArrayList<ListItem> listData = getListData();
-            final ListView listView = (ListView) findViewById(R.id.custom_list);
+            ListView listView = (ListView) findViewById(R.id.custom_list);
             listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
         }
     }

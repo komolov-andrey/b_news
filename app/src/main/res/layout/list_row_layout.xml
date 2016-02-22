@@ -11,8 +11,7 @@
         android:layout_height="70dp"
         android:layout_alignParentLeft="true"
         android:layout_centerVertical="true"
-        android:layout_marginRight="10dp"
-        android:background="@drawable/placeholder" />
+        android:layout_marginRight="10dp" />
 
     <TextView
         android:id="@+id/title"

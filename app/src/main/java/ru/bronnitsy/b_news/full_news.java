@@ -42,7 +42,7 @@ public class full_news extends Activity {
 
             Document doc = null;
             try {
-                doc = Jsoup.connect("http://www.bronnitsy.ru/news").get();
+                doc = Jsoup.connect("http://www.bronnitsy.ru/news").userAgent("Chrome").get();
             } catch (IOException e) {
             }
             Element mBody;
@@ -80,7 +80,7 @@ public class full_news extends Activity {
                 Document doc = null;
                 Element mBody;
             try {
-                    doc = Jsoup.connect(text[nom]).get();
+                    doc = Jsoup.connect(text[nom]).userAgent("Chrome").get();
                     mBody = doc.select("div.news").first();
 
                     Elements link = mBody.select("div.field.field-name-body.field-type-text-with-summary.field-label-hidden");
