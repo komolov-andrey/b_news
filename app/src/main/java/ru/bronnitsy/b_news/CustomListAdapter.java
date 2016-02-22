@@ -91,7 +91,7 @@ public class CustomListAdapter extends BaseAdapter {
         public CustomInterceptor() {}
 
         @Override
-        public Response intercept(Interceptor.Chain chain) throws IOException {
+        public com.squareup.okhttp.Response intercept(Chain chain) throws IOException {
             Request originalRequest = chain.request();
             Request requestWithUserAgent = originalRequest.newBuilder()
                     .removeHeader("User-Agent")
