@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 
+
 /**
  * Created by Андрюха on 18.05.2015.
  */
@@ -30,6 +31,12 @@ public class CustomListAdapter extends BaseAdapter {
         this.listData = listData;
         this.context = context;
         layoutInflater = LayoutInflater.from(context);
+
+        OkHttpClient client = new OkHttpClient();
+        client.networkInterceptors().add(new CustomInterceptor());
+        Picasso picasso = new Picasso.Builder(context)
+                .downloader(new OkHttpDownloader(client))
+                .build();
     }
 
     @Override
@@ -44,7 +51,7 @@ public class CustomListAdapter extends BaseAdapter {
 
     @Override
     public long getItemId(int position) {
-        return 0;
+        return position;
     }
 
     public View getView(int position, View convertView, ViewGroup parent) {
@@ -64,19 +71,14 @@ public class CustomListAdapter extends BaseAdapter {
 
         ListItem newsItem = (ListItem) getItem(position);
 
-        OkHttpClient client = new OkHttpClient();
-        client.networkInterceptors().add(new CustomInterceptor());
-        Picasso picasso = new Picasso.Builder(context)
-                .downloader(new OkHttpDownloader(client))
-                .build();
-
-        picasso.load(newsItem.getUrl().substring(0, newsItem.getUrl().lastIndexOf("?")))
+        Picasso.with(context).load(newsItem.getUrl())
                 .placeholder(R.drawable.placeholder)
                 .error(R.drawable.placeholder)
                 .into(holder.imageView);
 
         holder.headlineView.setText(newsItem.getHeadline());
         holder.reportedDateView.setText(newsItem.getDate());
+
         return convertView;
     }
 
