@@ -17,11 +17,10 @@ import com.squareup.picasso.Picasso;
 import java.io.IOException;
 import java.util.ArrayList;
 
-
-
 /**
  * Created by Андрюха on 18.05.2015.
  */
+
 public class CustomListAdapter extends BaseAdapter {
     private ArrayList<ListItem> listData;
     private LayoutInflater layoutInflater;

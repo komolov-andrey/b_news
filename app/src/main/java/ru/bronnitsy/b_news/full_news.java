@@ -20,11 +20,17 @@ public class full_news extends Activity {
 
     public static String[] text = new String[17];
     public static int position;
+
+    MyLoading myLoading;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.click_news);
+
+        myLoading = new MyLoading(this);
+        myLoading.show();
         //получили ссылки на описание новости
         get_short_news gsn = new get_short_news();
         gsn.execute();
@@ -97,6 +103,8 @@ public class full_news extends Activity {
             super.onPostExecute(result);
             TextView infoTextView = (TextView)findViewById(R.id.news_content);
             infoTextView.setText("     " + result);
+
+            myLoading.dismiss();
         }
 
     }

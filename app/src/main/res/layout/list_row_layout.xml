@@ -30,7 +30,7 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/title"
         android:layout_alignParentRight="true"
-        android:textColor="#ff00ff57" />
+        android:textColor="#009933" />
 
 
 </RelativeLayout>
