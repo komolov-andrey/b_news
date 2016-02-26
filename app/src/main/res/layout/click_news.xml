@@ -18,4 +18,5 @@
         android:layout_marginRight="7dip"
         android:textSize="20sp"/>
 </ScrollView>
+
 </LinearLayout>

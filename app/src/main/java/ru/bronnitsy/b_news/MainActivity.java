@@ -9,6 +9,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,6 +24,7 @@ public class MainActivity extends ActionBarActivity {
     public static String[] images = new String[17];
     public static String[] headlines = new String[17];
     public static String[] date = new String[17];
+    ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,6 +32,9 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         final ListView listView = (ListView) findViewById(R.id.custom_list);
+
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setVisibility(ProgressBar.VISIBLE);
 
         parse p = new parse();
         p.execute();
@@ -89,9 +94,14 @@ public class MainActivity extends ActionBarActivity {
     class parse extends AsyncTask<Void, Void, Void> {
 
         @Override
+        protected void onPreExecute(){
+
+        }
+
+        @Override
         protected Void doInBackground(Void... urls) {
 
-                Document doc = null;
+            Document doc = null;
                 try {
                     doc = Jsoup.connect("http://www.bronnitsy.ru/news").userAgent("Chrome").get();
                 } catch (IOException e) {
@@ -142,8 +152,11 @@ public class MainActivity extends ActionBarActivity {
             super.onPostExecute(result);
 
             ArrayList<ListItem> listData = getListData();
-            ListView listView = (ListView) findViewById(R.id.custom_list);
+            ListView listView = (ListView) findViewById(R.id.custom_list) ;
             listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
+
+
+            progressBar.setVisibility(ProgressBar.INVISIBLE);
         }
     }
 
