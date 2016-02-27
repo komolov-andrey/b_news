@@ -1,6 +1,9 @@
 package ru.bronnitsy.b_news;
 
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -10,6 +13,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -31,10 +35,17 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        final ListView listView = (ListView) findViewById(R.id.custom_list);
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setVisibility(ProgressBar.VISIBLE);
+
+        if (!hasConnection(getApplicationContext())) {
+            Toast.makeText(getApplicationContext(),
+                    "Нет соединения с интернетом!", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        final ListView listView = (ListView) findViewById(R.id.custom_list);
 
         parse p = new parse();
         p.execute();
@@ -66,7 +77,6 @@ public class MainActivity extends ActionBarActivity {
         return listMockData;
     }
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -92,11 +102,6 @@ public class MainActivity extends ActionBarActivity {
     }
 
     class parse extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected void onPreExecute(){
-
-        }
 
         @Override
         protected Void doInBackground(Void... urls) {
@@ -160,6 +165,25 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-
+    public static boolean hasConnection(final Context context)
+    {
+        ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo wifiInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+        if (wifiInfo != null && wifiInfo.isConnected())
+        {
+            return true;
+        }
+        wifiInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+        if (wifiInfo != null && wifiInfo.isConnected())
+        {
+            return true;
+        }
+        wifiInfo = cm.getActiveNetworkInfo();
+        if (wifiInfo != null && wifiInfo.isConnected())
+        {
+            return true;
+        }
+        return false;
+    }
 }
 
