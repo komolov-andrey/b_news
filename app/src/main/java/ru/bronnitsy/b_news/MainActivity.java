@@ -10,6 +10,8 @@ import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -28,13 +30,13 @@ public class MainActivity extends ActionBarActivity {
     public static String[] images = new String[17];
     public static String[] headlines = new String[17];
     public static String[] date = new String[17];
+    ListView listView = null;
     ProgressBar progressBar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setVisibility(ProgressBar.VISIBLE);
@@ -45,7 +47,7 @@ public class MainActivity extends ActionBarActivity {
             return;
         }
 
-        final ListView listView = (ListView) findViewById(R.id.custom_list);
+        listView = (ListView) findViewById(R.id.custom_list);
 
         parse p = new parse();
         p.execute();
@@ -58,6 +60,8 @@ public class MainActivity extends ActionBarActivity {
                 Intent intent = new Intent(MainActivity.this, full_news.class);
                 intent.putExtra("position", position);
                 startActivity(intent);
+
+                overridePendingTransition(R.anim.tap_in_right, R.anim.back_in_left);
             }
         });
     }
@@ -160,6 +164,9 @@ public class MainActivity extends ActionBarActivity {
             ListView listView = (ListView) findViewById(R.id.custom_list) ;
             listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
 
+            LayoutAnimationController controller = AnimationUtils
+                    .loadLayoutAnimation(getApplicationContext(), R.anim.list_layout_controller);
+            listView.setLayoutAnimation(controller);
 
             progressBar.setVisibility(ProgressBar.INVISIBLE);
         }

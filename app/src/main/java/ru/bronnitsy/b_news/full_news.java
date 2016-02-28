@@ -108,4 +108,10 @@ public class full_news extends Activity {
         }
 
     }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        overridePendingTransition(R.anim.tap_in_left, R.anim.back_in_right);
+    }
 }
