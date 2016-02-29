@@ -2,6 +2,7 @@ package ru.bronnitsy.b_news;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.AsyncTask;
@@ -32,6 +33,7 @@ public class MainActivity extends ActionBarActivity {
     public static String[] date = new String[17];
     ListView listView = null;
     ProgressBar progressBar;
+    private DatabaseHelper mDatabaseHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,6 +42,10 @@ public class MainActivity extends ActionBarActivity {
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setVisibility(ProgressBar.VISIBLE);
+
+        mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
+        SQLiteDatabase sdb;
+        sdb = mDatabaseHelper.getReadableDatabase();
 
         if (!hasConnection(getApplicationContext())) {
             Toast.makeText(getApplicationContext(),
