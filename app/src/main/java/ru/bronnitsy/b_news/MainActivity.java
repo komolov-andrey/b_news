@@ -25,15 +25,19 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity {
 
-    public static String[] images = new String[17];
-    public static String[] headlines = new String[17];
-    public static String[] date = new String[17];
-    ListView listView = null;
+    public final int n = 17;
+    public String[] images = new String[n];
+    public String[] headlines = new String[n];
+    public String[] date = new String[n];
+    ListView listView;
     ProgressBar progressBar;
     private DatabaseHelper mDatabaseHelper;
+    public SQLiteDatabase sdb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,8 +48,6 @@ public class MainActivity extends ActionBarActivity {
         progressBar.setVisibility(ProgressBar.VISIBLE);
 
         mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
-        SQLiteDatabase sdb;
-        sdb = mDatabaseHelper.getReadableDatabase();
 
         if (!hasConnection(getApplicationContext())) {
             Toast.makeText(getApplicationContext(),
@@ -53,10 +55,31 @@ public class MainActivity extends ActionBarActivity {
             return;
         }
 
-        listView = (ListView) findViewById(R.id.custom_list);
-
         parse p = new parse();
         p.execute();
+
+        try {
+            List<String[]> spisok = p.get();
+
+            headlines = spisok.get(0);
+            date = spisok.get(1);
+            images = spisok.get(2);
+
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        ArrayList<ListItem> listData = getListData();
+        listView = (ListView) findViewById(R.id.custom_list) ;
+        listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
+
+        LayoutAnimationController controller = AnimationUtils
+                .loadLayoutAnimation(getApplicationContext(), R.anim.list_layout_controller);
+        listView.setLayoutAnimation(controller);
+
+        progressBar.setVisibility(ProgressBar.INVISIBLE);
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -96,9 +119,6 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
@@ -111,10 +131,13 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class parse extends AsyncTask<Void, Void, Void> {
+    class parse extends AsyncTask<Void, Void, List<String[]>> {
 
+        String[] images = new String[n];
+        String[] headlines = new String[n];
+        String[] date = new String[n];
         @Override
-        protected Void doInBackground(Void... urls) {
+        protected List<String[]> doInBackground(Void... urls) {
 
             Document doc = null;
                 try {
@@ -156,25 +179,27 @@ public class MainActivity extends ActionBarActivity {
 
                     } catch (Exception e) {
                     }
+
+                    SQLiteDatabase sqdb = mDatabaseHelper.getWritableDatabase();
+                    String insertQuery = "INSERT or IGNORE INTO " +
+                            DatabaseHelper.DB_TABLE +
+                            " (" + DatabaseHelper.COLUMN_TITLE + ", " + DatabaseHelper.COLUMN_DATE + ", " + DatabaseHelper.COLUMN_IMAGE + ") VALUES (" +
+                            "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ")";
+                    sqdb.execSQL(insertQuery);
                 }
 
+            List<String[]> a = new ArrayList<String[]>();
 
-            return null;
+            a.add(headlines);
+            a.add(date);
+            a.add(images);
+
+            return a;
         }
 
         @Override
-        protected void onPostExecute(Void result) {
-            super.onPostExecute(result);
-
-            ArrayList<ListItem> listData = getListData();
-            ListView listView = (ListView) findViewById(R.id.custom_list) ;
-            listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
-
-            LayoutAnimationController controller = AnimationUtils
-                    .loadLayoutAnimation(getApplicationContext(), R.anim.list_layout_controller);
-            listView.setLayoutAnimation(controller);
-
-            progressBar.setVisibility(ProgressBar.INVISIBLE);
+        protected void onPostExecute(List<String[]> str) {
+            super.onPostExecute(str);
         }
     }
 
