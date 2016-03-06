@@ -2,6 +2,7 @@ package ru.bronnitsy.b_news;
 
 import android.content.Context;
 import android.content.Intent;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -52,7 +53,24 @@ public class MainActivity extends ActionBarActivity {
         if (!hasConnection(getApplicationContext())) {
             Toast.makeText(getApplicationContext(),
                     "Нет соединения с интернетом!", Toast.LENGTH_LONG).show();
-            return;
+
+            loadDataFromDB loadDataFromDB = new loadDataFromDB();
+            loadDataFromDB.execute();
+
+            try {
+                List<String[]> spisok = loadDataFromDB.get();
+
+                headlines = spisok.get(0);
+                date = spisok.get(1);
+                images = spisok.get(2);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+            setListView();
         }
 
         parse p = new parse();
@@ -71,15 +89,7 @@ public class MainActivity extends ActionBarActivity {
             e.printStackTrace();
         }
 
-        ArrayList<ListItem> listData = getListData();
-        listView = (ListView) findViewById(R.id.custom_list) ;
-        listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
-
-        LayoutAnimationController controller = AnimationUtils
-                .loadLayoutAnimation(getApplicationContext(), R.anim.list_layout_controller);
-        listView.setLayoutAnimation(controller);
-
-        progressBar.setVisibility(ProgressBar.INVISIBLE);
+        setListView();
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
@@ -93,6 +103,19 @@ public class MainActivity extends ActionBarActivity {
                 overridePendingTransition(R.anim.tap_in_right, R.anim.back_in_left);
             }
         });
+    }
+
+    private void setListView(){
+
+        ArrayList<ListItem> listData = getListData();
+        listView = (ListView) findViewById(R.id.custom_list) ;
+        listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
+
+        LayoutAnimationController controller = AnimationUtils
+                .loadLayoutAnimation(getApplicationContext(), R.anim.list_layout_controller);
+        listView.setLayoutAnimation(controller);
+
+        progressBar.setVisibility(ProgressBar.INVISIBLE);
     }
 
     private ArrayList<ListItem> getListData() {
@@ -121,7 +144,6 @@ public class MainActivity extends ActionBarActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
         if (id == R.id.about) {
             Intent intent = new Intent(MainActivity.this, about.class);
             startActivity(intent);
@@ -148,7 +170,7 @@ public class MainActivity extends ActionBarActivity {
 
                 //получение заголовка статьи
 
-                for (int i = 0; i < 17; i++) {
+                for (int i = n-1; i >= 0; i--) {
                     try {
                         mBody = doc.select("div.news").get(i);
                         Elements links = mBody.select("a[href]");
@@ -187,6 +209,48 @@ public class MainActivity extends ActionBarActivity {
                             "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ")";
                     sqdb.execSQL(insertQuery);
                 }
+
+            List<String[]> a = new ArrayList<String[]>();
+
+            a.add(headlines);
+            a.add(date);
+            a.add(images);
+
+            return a;
+        }
+
+        @Override
+        protected void onPostExecute(List<String[]> str) {
+            super.onPostExecute(str);
+        }
+    }
+
+    class loadDataFromDB extends AsyncTask<Void, Void, List<String[]>> {
+
+        String[] images = new String[n];
+        String[] headlines = new String[n];
+        String[] date = new String[n];
+        @Override
+        protected List<String[]> doInBackground(Void... urls) {
+
+            sdb = mDatabaseHelper.getReadableDatabase();
+
+            String query = "SELECT * FROM (SELECT * FROM " + DatabaseHelper.DB_TABLE + " ORDER BY " + DatabaseHelper.COLUMN_ID + " DESC LIMIT " + n + ")";
+            Cursor cursor = sdb.rawQuery(query, null);
+
+            int i=0;
+            while (cursor.moveToNext()) {
+
+                images[i] = cursor.getString(cursor
+                        .getColumnIndex(DatabaseHelper.COLUMN_IMAGE));
+                headlines[i] = cursor.getString(cursor
+                        .getColumnIndex(DatabaseHelper.COLUMN_TITLE));
+                date[i] = cursor.getString(cursor
+                        .getColumnIndex(DatabaseHelper.COLUMN_DATE));
+                i++;
+            }
+            cursor.close();
+
 
             List<String[]> a = new ArrayList<String[]>();
 

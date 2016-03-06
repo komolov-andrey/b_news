@@ -31,7 +31,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String DB_CREATE_TABLE = "create table "
             + DB_TABLE + " (" + COLUMN_ID
             + " integer primary key autoincrement, " + COLUMN_TITLE
-            + " text not null, " + COLUMN_DATE + " text, " + COLUMN_IMAGE
+            + " text not null, " + COLUMN_DATE + " text not null, " + COLUMN_IMAGE
             + " text, " + COLUMN_TEXT + " text, UNIQUE (" + COLUMN_TITLE + ", " + COLUMN_DATE + "));";
     @Override
     public void onCreate(SQLiteDatabase db) {
