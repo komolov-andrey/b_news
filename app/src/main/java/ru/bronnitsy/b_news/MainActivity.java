@@ -25,6 +25,8 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -39,6 +41,7 @@ public class MainActivity extends ActionBarActivity {
     ProgressBar progressBar;
     private DatabaseHelper mDatabaseHelper;
     public SQLiteDatabase sdb;
+    public static Boolean checkInt = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,7 +53,18 @@ public class MainActivity extends ActionBarActivity {
 
         mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
 
-        if (!hasConnection(getApplicationContext())) {
+        CheckInternet checkInternet = new CheckInternet();
+        checkInternet.execute();
+
+        try {
+            checkInt = checkInternet.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+
+        if (!checkInt) {
             Toast.makeText(getApplicationContext(),
                     "Нет соединения с интернетом!", Toast.LENGTH_LONG).show();
 
@@ -71,30 +85,31 @@ public class MainActivity extends ActionBarActivity {
             }
 
             setListView();
+        } else {
+
+            parse p = new parse();
+            p.execute();
+
+            try {
+                List<String[]> spisok = p.get();
+
+                headlines = spisok.get(0);
+                date = spisok.get(1);
+                images = spisok.get(2);
+
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+
+            setListView();
         }
-
-        parse p = new parse();
-        p.execute();
-
-        try {
-            List<String[]> spisok = p.get();
-
-            headlines = spisok.get(0);
-            date = spisok.get(1);
-            images = spisok.get(2);
-
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-
-        setListView();
 
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
-            public void onItemClick(AdapterView <?> a, View v, int position, long id) {
+            public void onItemClick(AdapterView<?> a, View v, int position, long id) {
                 ListItem newsData = (ListItem) listView.getItemAtPosition(position);
                 Intent intent = new Intent(MainActivity.this, full_news.class);
                 intent.putExtra("position", position);
@@ -105,10 +120,10 @@ public class MainActivity extends ActionBarActivity {
         });
     }
 
-    private void setListView(){
+    private void setListView() {
 
         ArrayList<ListItem> listData = getListData();
-        listView = (ListView) findViewById(R.id.custom_list) ;
+        listView = (ListView) findViewById(R.id.custom_list);
         listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
 
         LayoutAnimationController controller = AnimationUtils
@@ -158,57 +173,58 @@ public class MainActivity extends ActionBarActivity {
         String[] images = new String[n];
         String[] headlines = new String[n];
         String[] date = new String[n];
+
         @Override
         protected List<String[]> doInBackground(Void... urls) {
 
             Document doc = null;
+            try {
+                doc = Jsoup.connect("http://www.bronnitsy.ru/news").userAgent("Chrome").get();
+            } catch (IOException e) {
+            }
+            Element mBody;
+
+            //получение заголовка статьи
+
+            for (int i = n - 1; i >= 0; i--) {
                 try {
-                    doc = Jsoup.connect("http://www.bronnitsy.ru/news").userAgent("Chrome").get();
-                } catch (IOException e) {
+                    mBody = doc.select("div.news").get(i);
+                    Elements links = mBody.select("a[href]");
+
+                    headlines[i] = links.attr("title");
+
+                } catch (Exception e) {
                 }
-                Element mBody;
+                //получение ссылки на фото статьи
 
-                //получение заголовка статьи
+                try {
+                    mBody = doc.select("div.news").get(i);
+                    Elements links = mBody.select("[src]");
 
-                for (int i = n-1; i >= 0; i--) {
-                    try {
-                        mBody = doc.select("div.news").get(i);
-                        Elements links = mBody.select("a[href]");
+                    images[i] = links.attr("src");
 
-                        headlines[i] = links.attr("title");
-
-                    } catch (Exception e) {
-                    }
-                    //получение ссылки на фото статьи
-
-                    try {
-                        mBody = doc.select("div.news").get(i);
-                        Elements links = mBody.select("[src]");
-
-                        images[i] = links.attr("src");
-
-                    } catch (Exception e) {
-                    }
-
-
-                    //Получение даты написания статьи
-
-                    try {
-                        mBody = doc.select("div.news").get(i);
-                        String time = mBody.select("div.video_total").text();
-
-                        date[i] = time;
-
-                    } catch (Exception e) {
-                    }
-
-                    SQLiteDatabase sqdb = mDatabaseHelper.getWritableDatabase();
-                    String insertQuery = "INSERT or IGNORE INTO " +
-                            DatabaseHelper.DB_TABLE +
-                            " (" + DatabaseHelper.COLUMN_TITLE + ", " + DatabaseHelper.COLUMN_DATE + ", " + DatabaseHelper.COLUMN_IMAGE + ") VALUES (" +
-                            "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ")";
-                    sqdb.execSQL(insertQuery);
+                } catch (Exception e) {
                 }
+
+
+                //Получение даты написания статьи
+
+                try {
+                    mBody = doc.select("div.news").get(i);
+                    String time = mBody.select("div.video_total").text();
+
+                    date[i] = time;
+
+                } catch (Exception e) {
+                }
+
+                SQLiteDatabase sqdb = mDatabaseHelper.getWritableDatabase();
+                String insertQuery = "INSERT or IGNORE INTO " +
+                        DatabaseHelper.DB_TABLE +
+                        " (" + DatabaseHelper.COLUMN_TITLE + ", " + DatabaseHelper.COLUMN_DATE + ", " + DatabaseHelper.COLUMN_IMAGE + ") VALUES (" +
+                        "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ")";
+                sqdb.execSQL(insertQuery);
+            }
 
             List<String[]> a = new ArrayList<String[]>();
 
@@ -230,15 +246,16 @@ public class MainActivity extends ActionBarActivity {
         String[] images = new String[n];
         String[] headlines = new String[n];
         String[] date = new String[n];
+
         @Override
         protected List<String[]> doInBackground(Void... urls) {
 
             sdb = mDatabaseHelper.getReadableDatabase();
 
-            String query = "SELECT * FROM (SELECT * FROM " + DatabaseHelper.DB_TABLE + " ORDER BY " + DatabaseHelper.COLUMN_ID + " DESC LIMIT " + n + ")";
+            String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " ORDER BY " + DatabaseHelper.COLUMN_ID + " DESC LIMIT " + n + "";
             Cursor cursor = sdb.rawQuery(query, null);
 
-            int i=0;
+            int i = 0;
             while (cursor.moveToNext()) {
 
                 images[i] = cursor.getString(cursor
@@ -267,25 +284,45 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
-    public static boolean hasConnection(final Context context)
-    {
-        ConnectivityManager cm = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo wifiInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        if (wifiInfo != null && wifiInfo.isConnected())
-        {
-            return true;
+    class CheckInternet extends AsyncTask<Void, Void, Boolean> {
+
+        public boolean isInternetConnection = true;
+
+        @Override
+        protected Boolean doInBackground(Void... agrs) {
+
+            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+            // проверка подключения
+            if (activeNetwork != null && activeNetwork.isConnected()) {
+                try {
+                    // тест доступности внешнего ресурса
+                    URL url = new URL("http://www.bronnitsy.ru/news");
+                    HttpURLConnection urlc = (HttpURLConnection) url.openConnection();
+                    urlc.setRequestProperty("User-Agent", "test");
+                    urlc.setRequestProperty("Connection", "close");
+                    urlc.setConnectTimeout(3000); // Timeout в секундах
+                    urlc.connect();
+                    // статус ресурса OK
+                    if (urlc.getResponseCode() == 200) {
+                        return true;
+                    }
+                    // иначе проверка провалилась
+                    return false;
+
+                } catch (IOException e) {
+                    return false;
+                }
+            }
+
+            return false;
         }
-        wifiInfo = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-        if (wifiInfo != null && wifiInfo.isConnected())
-        {
-            return true;
+
+        @Override
+        protected void onPostExecute(Boolean result) {
+            super.onPostExecute(result);
         }
-        wifiInfo = cm.getActiveNetworkInfo();
-        if (wifiInfo != null && wifiInfo.isConnected())
-        {
-            return true;
-        }
-        return false;
     }
 }
 
