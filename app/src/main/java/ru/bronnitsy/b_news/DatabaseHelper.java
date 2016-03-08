@@ -17,6 +17,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public static final String COLUMN_IMAGE = "src";
     public static final String COLUMN_DATE = "date";
     public static final String COLUMN_TEXT = "text";
+    public static final String COLUMN_SRCFULLNEWS = "fullnews";
 
     public DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory,
                           int version) {
@@ -26,13 +27,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public DatabaseHelper(Context context, String name, SQLiteDatabase.CursorFactory factory,
                           int version, DatabaseErrorHandler errorHandler) {
         super(context, name, factory, version, errorHandler);
+
     }
 
     private static final String DB_CREATE_TABLE = "create table "
             + DB_TABLE + " (" + COLUMN_ID
             + " integer primary key autoincrement, " + COLUMN_TITLE
             + " text not null, " + COLUMN_DATE + " text not null, " + COLUMN_IMAGE
-            + " text, " + COLUMN_TEXT + " text, UNIQUE (" + COLUMN_TITLE + ", " + COLUMN_DATE + "));";
+            + " text, " + COLUMN_SRCFULLNEWS + " text, " + COLUMN_TEXT + " text, UNIQUE (" + COLUMN_TITLE + ", " + COLUMN_DATE + "));";
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(DB_CREATE_TABLE);

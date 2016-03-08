@@ -33,7 +33,7 @@ import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity {
 
-    public final int n = 17;
+    public static final int n = 17;
     public String[] images = new String[n];
     public String[] headlines = new String[n];
     public String[] date = new String[n];
@@ -83,8 +83,8 @@ public class MainActivity extends ActionBarActivity {
             } catch (ExecutionException e) {
                 e.printStackTrace();
             }
-
             setListView();
+
         } else {
 
             parse p = new parse();
@@ -119,6 +119,7 @@ public class MainActivity extends ActionBarActivity {
             }
         });
     }
+
 
     private void setListView() {
 
@@ -173,6 +174,7 @@ public class MainActivity extends ActionBarActivity {
         String[] images = new String[n];
         String[] headlines = new String[n];
         String[] date = new String[n];
+        String[] src_full_news = new String[n];
 
         @Override
         protected List<String[]> doInBackground(Void... urls) {
@@ -218,11 +220,20 @@ public class MainActivity extends ActionBarActivity {
                 } catch (Exception e) {
                 }
 
+                try {
+                    mBody = doc.select("div.news").get(i);
+                    Elements links = mBody.select("a[href]");
+
+                    src_full_news[i] = "http://www.bronnitsy.ru" + links.attr("href");
+
+                } catch (Exception e) {
+                }
+
                 SQLiteDatabase sqdb = mDatabaseHelper.getWritableDatabase();
                 String insertQuery = "INSERT or IGNORE INTO " +
                         DatabaseHelper.DB_TABLE +
-                        " (" + DatabaseHelper.COLUMN_TITLE + ", " + DatabaseHelper.COLUMN_DATE + ", " + DatabaseHelper.COLUMN_IMAGE + ") VALUES (" +
-                        "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ")";
+                        " (" + DatabaseHelper.COLUMN_TITLE + ", " + DatabaseHelper.COLUMN_DATE + ", " + DatabaseHelper.COLUMN_IMAGE + ", " + DatabaseHelper.COLUMN_SRCFULLNEWS + ") VALUES (" +
+                        "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ", " + "'" + src_full_news[i] + "'" +")";
                 sqdb.execSQL(insertQuery);
             }
 
