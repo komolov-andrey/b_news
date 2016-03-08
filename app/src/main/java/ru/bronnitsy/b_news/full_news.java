@@ -24,7 +24,7 @@ public class full_news extends Activity {
     public static String src_text = "";
     public static int position;
 
-    private DatabaseHelper mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);;
+    private DatabaseHelper mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
     public SQLiteDatabase sdb;
 
     MyLoading myLoading;
@@ -64,9 +64,11 @@ public class full_news extends Activity {
             cursor.moveToNext();
                 i++;
             }
-            //добавить в бд
+
             src_text = cursor.getString(cursor
                     .getColumnIndex(DatabaseHelper.COLUMN_SRCFULLNEWS));
+            int src_id = cursor.getInt(cursor
+                    .getColumnIndex(DatabaseHelper.COLUMN_ID));
             cursor.close();
 
             try {
@@ -75,6 +77,12 @@ public class full_news extends Activity {
 
                     Elements link = mBody.select("div.field.field-name-body.field-type-text-with-summary.field-label-hidden");
                     article = link.text();
+
+                //добавить в бд
+                sdb = mDatabaseHelper.getWritableDatabase();
+                String insertQuery = "UPDATE or IGNORE " + DatabaseHelper.DB_TABLE +
+                        " set " + DatabaseHelper.COLUMN_TEXT + " = " + "'" + article + "'" + " WHERE " + DatabaseHelper.COLUMN_ID + " = " + src_id;
+                sdb.execSQL(insertQuery);
 
             } catch (IOException e) {
                 //чтение из бд

@@ -49,7 +49,6 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        progressBar.setVisibility(ProgressBar.VISIBLE);
 
         mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
 
