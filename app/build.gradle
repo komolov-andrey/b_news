@@ -25,4 +25,5 @@ dependencies {
     compile 'org.jsoup:jsoup:1.8.1'
     compile 'com.squareup.picasso:picasso:2.5.2'
     compile 'com.squareup.okhttp:okhttp:2.7.4'
+    compile 'com.mikhaellopez:circularprogressbar:1.1.1'
 }

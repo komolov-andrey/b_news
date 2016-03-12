@@ -46,9 +46,11 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
-        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+            progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.setVisibility(ProgressBar.VISIBLE);
 
         mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
 
@@ -56,6 +58,7 @@ public class MainActivity extends ActionBarActivity {
         checkInternet.execute();
 
         try {
+            Thread.sleep(10000);
             checkInt = checkInternet.get();
         } catch (InterruptedException e) {
             e.printStackTrace();
@@ -125,19 +128,20 @@ public class MainActivity extends ActionBarActivity {
         ArrayList<ListItem> listData = getListData();
         listView = (ListView) findViewById(R.id.custom_list);
         listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
+        //progressBar.setVisibility(ProgressBar.VISIBLE);
 
         LayoutAnimationController controller = AnimationUtils
                 .loadLayoutAnimation(getApplicationContext(), R.anim.list_layout_controller);
         listView.setLayoutAnimation(controller);
 
-        progressBar.setVisibility(ProgressBar.INVISIBLE);
+        //progressBar.setVisibility(ProgressBar.INVISIBLE);
     }
 
     private ArrayList<ListItem> getListData() {
 
         ArrayList<ListItem> listMockData = new ArrayList<ListItem>();
 
-        for (int i = 0; i < headlines.length; i++) {
+        for (int i = 0; i < n; i++) {
             ListItem newsData = new ListItem();
             newsData.setUrl(images[i]);
             newsData.setHeadline(headlines[i]);
@@ -335,4 +339,3 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 }
-

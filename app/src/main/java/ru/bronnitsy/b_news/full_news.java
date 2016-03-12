@@ -97,7 +97,7 @@ public class full_news extends Activity {
             TextView infoTextView = (TextView)findViewById(R.id.news_content);
             infoTextView.setText("     " + result);
 
-            myLoading.dismiss();
+            //myLoading.dismiss();
         }
 
     }
