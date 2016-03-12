@@ -49,11 +49,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
-        //not visible
-        setListView();
-        listView.setVisibility(View.VISIBLE);
         progressBar.setVisibility(ProgressBar.VISIBLE);
-        listView.setVisibility(View.VISIBLE);
 
         mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
 
@@ -114,7 +110,7 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public void onItemClick(AdapterView<?> a, View v, int position, long id) {
-                ListItem newsData = (ListItem) listView.getItemAtPosition(position);
+                //ListItem newsData = (ListItem) listView.getItemAtPosition(position);
                 Intent intent = new Intent(MainActivity.this, full_news.class);
                 intent.putExtra("position", position);
                 startActivity(intent);
@@ -302,6 +298,12 @@ public class MainActivity extends ActionBarActivity {
     class CheckInternet extends AsyncTask<Void, Void, Boolean> {
 
         public boolean isInternetConnection = true;
+        @Override
+        protected void onPreExecute(){
+            super.onPreExecute();
+//            MyLoading mm = new MyLoading();
+//            mm.show();
+        }
 
         @Override
         protected Boolean doInBackground(Void... agrs) {
