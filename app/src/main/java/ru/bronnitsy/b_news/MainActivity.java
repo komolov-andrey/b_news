@@ -46,11 +46,14 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
 
-            progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        //not visible
+        setListView();
+        listView.setVisibility(View.VISIBLE);
         progressBar.setVisibility(ProgressBar.VISIBLE);
+        listView.setVisibility(View.VISIBLE);
 
         mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
 
@@ -65,7 +68,6 @@ public class MainActivity extends ActionBarActivity {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
-
         if (!checkInt) {
             Toast.makeText(getApplicationContext(),
                     "Нет соединения с интернетом!", Toast.LENGTH_LONG).show();
@@ -128,7 +130,6 @@ public class MainActivity extends ActionBarActivity {
         ArrayList<ListItem> listData = getListData();
         listView = (ListView) findViewById(R.id.custom_list);
         listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
-        //progressBar.setVisibility(ProgressBar.VISIBLE);
 
         LayoutAnimationController controller = AnimationUtils
                 .loadLayoutAnimation(getApplicationContext(), R.anim.list_layout_controller);
