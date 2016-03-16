@@ -57,55 +57,23 @@ public class MainActivity extends ActionBarActivity {
         checkInternet.execute();
 
         try {
-            Thread.sleep(10000);
+            //Thread.sleep(10000);
             checkInt = checkInternet.get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
+        } catch (InterruptedException|ExecutionException e) {
             e.printStackTrace();
         }
         if (!checkInt) {
             Toast.makeText(getApplicationContext(),
                     "Нет соединения с интернетом!", Toast.LENGTH_LONG).show();
 
-            loadDataFromDB loadDataFromDB = new loadDataFromDB();
+            LoadDataFromDB loadDataFromDB = new LoadDataFromDB();
             loadDataFromDB.execute();
-
-            try {
-                List<String[]> spisok = loadDataFromDB.get();
-
-                headlines = spisok.get(0);
-                date = spisok.get(1);
-                images = spisok.get(2);
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-            setListView();
-
         } else {
-
             parse p = new parse();
             p.execute();
-
-            try {
-                List<String[]> spisok = p.get();
-
-                headlines = spisok.get(0);
-                date = spisok.get(1);
-                images = spisok.get(2);
-
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
-
-            setListView();
         }
 
+        listView = (ListView) findViewById(R.id.custom_list);
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -124,19 +92,18 @@ public class MainActivity extends ActionBarActivity {
     private void setListView() {
 
         ArrayList<ListItem> listData = getListData();
-        listView = (ListView) findViewById(R.id.custom_list);
         listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
 
         LayoutAnimationController controller = AnimationUtils
                 .loadLayoutAnimation(getApplicationContext(), R.anim.list_layout_controller);
         listView.setLayoutAnimation(controller);
 
-        //progressBar.setVisibility(ProgressBar.INVISIBLE);
+        progressBar.setVisibility(ProgressBar.GONE);
     }
 
     private ArrayList<ListItem> getListData() {
 
-        ArrayList<ListItem> listMockData = new ArrayList<ListItem>();
+        ArrayList<ListItem> listMockData = new ArrayList<>();
 
         for (int i = 0; i < n; i++) {
             ListItem newsData = new ListItem();
@@ -171,9 +138,9 @@ public class MainActivity extends ActionBarActivity {
 
     class parse extends AsyncTask<Void, Void, List<String[]>> {
 
-        String[] images = new String[n];
-        String[] headlines = new String[n];
-        String[] date = new String[n];
+        //String[] images = new String[n];
+        //String[] headlines = new String[n];
+        //String[] date = new String[n];
         String[] src_full_news = new String[n];
 
         @Override
@@ -183,6 +150,7 @@ public class MainActivity extends ActionBarActivity {
             try {
                 doc = Jsoup.connect("http://www.bronnitsy.ru/news").userAgent("Chrome").get();
             } catch (IOException e) {
+                e.printStackTrace();
             }
             Element mBody;
 
@@ -237,7 +205,7 @@ public class MainActivity extends ActionBarActivity {
                 sqdb.execSQL(insertQuery);
             }
 
-            List<String[]> a = new ArrayList<String[]>();
+            List<String[]> a = new ArrayList<>();
 
             a.add(headlines);
             a.add(date);
@@ -247,16 +215,21 @@ public class MainActivity extends ActionBarActivity {
         }
 
         @Override
-        protected void onPostExecute(List<String[]> str) {
-            super.onPostExecute(str);
+        protected void onPostExecute(List<String[]> spisok) {
+            super.onPostExecute(spisok);
+
+            headlines = spisok.get(0);
+            date = spisok.get(1);
+            images = spisok.get(2);
+            setListView();
         }
     }
 
-    class loadDataFromDB extends AsyncTask<Void, Void, List<String[]>> {
+    class LoadDataFromDB extends AsyncTask<Void, Void, List<String[]>> {
 
-        String[] images = new String[n];
-        String[] headlines = new String[n];
-        String[] date = new String[n];
+        //String[] images = new String[n];
+        //String[] headlines = new String[n];
+        //String[] date = new String[n];
 
         @Override
         protected List<String[]> doInBackground(Void... urls) {
@@ -280,7 +253,7 @@ public class MainActivity extends ActionBarActivity {
             cursor.close();
 
 
-            List<String[]> a = new ArrayList<String[]>();
+            List<String[]> a = new ArrayList<>();
 
             a.add(headlines);
             a.add(date);
@@ -290,8 +263,12 @@ public class MainActivity extends ActionBarActivity {
         }
 
         @Override
-        protected void onPostExecute(List<String[]> str) {
-            super.onPostExecute(str);
+        protected void onPostExecute(List<String[]> spisok) {
+            super.onPostExecute(spisok);
+            headlines = spisok.get(0);
+            date = spisok.get(1);
+            images = spisok.get(2);
+            setListView();
         }
     }
 
