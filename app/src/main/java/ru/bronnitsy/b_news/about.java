@@ -20,6 +20,5 @@ public class about extends Activity {
 
         TextView txtView = (TextView) findViewById(R.id.textView);
         txtView.setText("Это неофициальный клиент\nВся информация взята с сайта \nhttp://www.bronnitsy.ru\n\nРазработчик Андрей Комолов");
-
     }
 }

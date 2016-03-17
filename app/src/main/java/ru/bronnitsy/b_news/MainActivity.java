@@ -1,11 +1,9 @@
 package ru.bronnitsy.b_news;
 
-import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -24,12 +22,8 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import java.io.IOException;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -37,59 +31,32 @@ public class MainActivity extends ActionBarActivity {
     public String[] images = new String[n];
     public String[] headlines = new String[n];
     public String[] date = new String[n];
+    public String[] src_full_news = new String[n];
     ListView listView;
     ProgressBar progressBar;
     private DatabaseHelper mDatabaseHelper;
     public SQLiteDatabase sdb;
-    public static Boolean checkInt = true;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.getIndeterminateDrawable().setColorFilter(Color.BLUE, android.graphics.PorterDuff.Mode.MULTIPLY);
         progressBar.setVisibility(ProgressBar.VISIBLE);
 
         mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
 
-        CheckInternet checkInternet = new CheckInternet();
-        checkInternet.execute();
-
-        try {
-            checkInt = checkInternet.get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-        if (!checkInt) {
-            Toast.makeText(getApplicationContext(),
-                    "Нет соединения с интернетом!", Toast.LENGTH_LONG).show();
-
-            LoadDataFromDB loadDataFromDB = new LoadDataFromDB();
-            loadDataFromDB.execute();
-        } else {
-            parse p = new parse();
-            p.execute();
-        }
-
-        listView = (ListView) findViewById(R.id.custom_list);
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
-            @Override
-            public void onItemClick(AdapterView<?> a, View v, int position, long id) {
-                //ListItem newsData = (ListItem) listView.getItemAtPosition(position);
-                Intent intent = new Intent(MainActivity.this, FullNews.class);
-                intent.putExtra("position", position);
-                startActivity(intent);
-
-                overridePendingTransition(R.anim.tap_in_right, R.anim.back_in_left);
-            }
-        });
+        LoadingData loadingData = new LoadingData();
+        loadingData.execute();
     }
 
 
     private void setListView() {
 
+        listView = (ListView) findViewById(R.id.custom_list);
         ArrayList<ListItem> listData = getListData();
         listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
 
@@ -97,6 +64,17 @@ public class MainActivity extends ActionBarActivity {
                 .loadLayoutAnimation(getApplicationContext(), R.anim.list_layout_controller);
         listView.setLayoutAnimation(controller);
 
+        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> a, View v, int position, long id) {
+                Intent intent = new Intent(MainActivity.this, FullNews.class);
+                intent.putExtra("position", position);
+                startActivity(intent);
+
+                overridePendingTransition(R.anim.tap_in_right, R.anim.back_in_left);
+            }
+        });
         progressBar.setVisibility(ProgressBar.GONE);
     }
 
@@ -117,7 +95,6 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
@@ -135,66 +112,52 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    class parse extends AsyncTask<Void, Void, List<String[]>> {
+    class LoadingData extends AsyncTask<Void, Void, List<String[]>> {
 
-        //String[] images = new String[n];
-        //String[] headlines = new String[n];
-        //String[] date = new String[n];
-        String[] src_full_news = new String[n];
+        private boolean isInternetConnection = true;
 
         @Override
         protected List<String[]> doInBackground(Void... urls) {
 
-            Document doc = null;
             try {
+
+                isInternetConnection = false;
+
+                Document doc = null;
                 doc = Jsoup.connect("http://www.bronnitsy.ru/news").userAgent("Chrome").get();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            Element mBody;
 
-            //получение заголовка статьи
+                Element mBody;
 
-            for (int i = n - 1; i >= 0; i--) {
-                try {
+                //получение заголовка статьи
+
+                for (int i = n - 1; i >= 0; i--) {
+
                     mBody = doc.select("div.news").get(i);
                     Elements links = mBody.select("a[href]");
 
                     headlines[i] = links.attr("title");
 
-                } catch (Exception e) {
-                }
-                //получение ссылки на фото статьи
+                    //получение ссылки на фото статьи
 
-                try {
                     mBody = doc.select("div.news").get(i);
-                    Elements links = mBody.select("[src]");
+                    links = mBody.select("[src]");
 
                     images[i] = links.attr("src");
 
-                } catch (Exception e) {
-                }
+                    //Получение даты написания статьи
 
-
-                //Получение даты написания статьи
-
-                try {
                     mBody = doc.select("div.news").get(i);
                     String time = mBody.select("div.video_total").text();
 
                     date[i] = time;
 
-                } catch (Exception e) {
-                }
+                    //Получение ссылки на полное описание новости
 
-                try {
                     mBody = doc.select("div.news").get(i);
-                    Elements links = mBody.select("a[href]");
+                    links = mBody.select("a[href]");
 
                     src_full_news[i] = "http://www.bronnitsy.ru" + links.attr("href");
 
-                } catch (Exception e) {
-                }
 
                 SQLiteDatabase sqdb = mDatabaseHelper.getWritableDatabase();
                 String insertQuery = "INSERT or IGNORE INTO " +
@@ -203,119 +166,52 @@ public class MainActivity extends ActionBarActivity {
                         "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ", " + "'" + src_full_news[i] + "'" + ")";
                 sqdb.execSQL(insertQuery);
             }
+                isInternetConnection = true;
 
-            List<String[]> a = new ArrayList<>();
+            } catch (Exception e) {
 
-            a.add(headlines);
-            a.add(date);
-            a.add(images);
+                sdb = mDatabaseHelper.getReadableDatabase();
 
-            return a;
-        }
+                String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " ORDER BY " + DatabaseHelper.COLUMN_ID + " DESC LIMIT " + n + "";
+                Cursor cursor = sdb.rawQuery(query, null);
 
-        @Override
-        protected void onPostExecute(List<String[]> spisok) {
-            super.onPostExecute(spisok);
+                int i = 0;
+                while (cursor.moveToNext()) {
 
-            headlines = spisok.get(0);
-            date = spisok.get(1);
-            images = spisok.get(2);
-            setListView();
-        }
-    }
-
-    class LoadDataFromDB extends AsyncTask<Void, Void, List<String[]>> {
-
-        //String[] images = new String[n];
-        //String[] headlines = new String[n];
-        //String[] date = new String[n];
-
-        @Override
-        protected List<String[]> doInBackground(Void... urls) {
-
-            sdb = mDatabaseHelper.getReadableDatabase();
-
-            String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " ORDER BY " + DatabaseHelper.COLUMN_ID + " DESC LIMIT " + n + "";
-            Cursor cursor = sdb.rawQuery(query, null);
-
-            int i = 0;
-            while (cursor.moveToNext()) {
-
-                images[i] = cursor.getString(cursor
-                        .getColumnIndex(DatabaseHelper.COLUMN_IMAGE));
-                headlines[i] = cursor.getString(cursor
-                        .getColumnIndex(DatabaseHelper.COLUMN_TITLE));
-                date[i] = cursor.getString(cursor
-                        .getColumnIndex(DatabaseHelper.COLUMN_DATE));
-                i++;
-            }
-            cursor.close();
-
-
-            List<String[]> a = new ArrayList<>();
-
-            a.add(headlines);
-            a.add(date);
-            a.add(images);
-
-            return a;
-        }
-
-        @Override
-        protected void onPostExecute(List<String[]> spisok) {
-            super.onPostExecute(spisok);
-            headlines = spisok.get(0);
-            date = spisok.get(1);
-            images = spisok.get(2);
-            setListView();
-        }
-    }
-
-    class CheckInternet extends AsyncTask<Void, Void, Boolean> {
-
-        public boolean isInternetConnection = true;
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-//            MyLoading mm = new MyLoading();
-//            mm.show();
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... agrs) {
-
-            ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-
-            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
-            // проверка подключения
-            if (activeNetwork != null && activeNetwork.isConnected()) {
-                try {
-                    // тест доступности внешнего ресурса
-                    URL url = new URL("http://www.bronnitsy.ru/news");
-                    HttpURLConnection urlc = (HttpURLConnection) url.openConnection();
-                    urlc.setRequestProperty("User-Agent", "test");
-                    urlc.setRequestProperty("Connection", "close");
-                    urlc.setConnectTimeout(3000); // Timeout в секундах
-                    urlc.connect();
-                    // статус ресурса OK
-                    if (urlc.getResponseCode() == 200) {
-                        return true;
-                    }
-                    // иначе проверка провалилась
-                    return false;
-
-                } catch (IOException e) {
-                    return false;
+                    images[i] = cursor.getString(cursor
+                            .getColumnIndex(DatabaseHelper.COLUMN_IMAGE));
+                    headlines[i] = cursor.getString(cursor
+                            .getColumnIndex(DatabaseHelper.COLUMN_TITLE));
+                    date[i] = cursor.getString(cursor
+                            .getColumnIndex(DatabaseHelper.COLUMN_DATE));
+                    i++;
                 }
+                cursor.close();
             }
 
-            return false;
+            List<String[]> list = new ArrayList<>();
+
+            list.add(headlines);
+            list.add(date);
+            list.add(images);
+
+            return list;
         }
 
         @Override
-        protected void onPostExecute(Boolean result) {
-            super.onPostExecute(result);
+        protected void onPostExecute(List<String[]> list) {
+            super.onPostExecute(list);
+
+            if (!isInternetConnection) {
+                Toast.makeText(getApplicationContext(),
+                        "Нет соединения с интернетом!", Toast.LENGTH_LONG).show();
+            }
+
+            headlines = list.get(0);
+            date = list.get(1);
+            images = list.get(2);
+
+            setListView();
         }
     }
 }

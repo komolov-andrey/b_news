@@ -35,10 +35,8 @@ public class FullNews extends Activity {
 
         setContentView(R.layout.click_news);
 
-        //myLoading = new MyLoading(this);
-        //myLoading.show();
+        position = getIntent().getIntExtra("position", 0);
 
-        position = getIntent().getIntExtra("position", 0);// default пусть 0
         get_full_news gfn = new get_full_news();
         gfn.execute(position);
 
@@ -55,6 +53,8 @@ public class FullNews extends Activity {
             Element mBody;
 
             sdb = mDatabaseHelper.getReadableDatabase();
+
+            //Нужно ссылаться на id
 
             String query = "SELECT * " + " FROM " + DatabaseHelper.DB_TABLE + " order by " + DatabaseHelper.COLUMN_ID + " DESC LIMIT " + MainActivity.n + "";
             Cursor cursor = sdb.rawQuery(query, null);
@@ -97,7 +97,6 @@ public class FullNews extends Activity {
             TextView infoTextView = (TextView) findViewById(R.id.news_content);
             infoTextView.setText("     " + result);
 
-            //myLoading.dismiss();
         }
 
     }
@@ -105,6 +104,7 @@ public class FullNews extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+
         overridePendingTransition(R.anim.tap_in_left, R.anim.back_in_right);
     }
 }
