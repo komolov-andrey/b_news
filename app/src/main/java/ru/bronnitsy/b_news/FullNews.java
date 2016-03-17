@@ -18,7 +18,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 
-public class full_news extends Activity {
+public class FullNews extends Activity {
 
     public static String[] text = new String[MainActivity.n];
     public static String src_text = "";
@@ -27,7 +27,7 @@ public class full_news extends Activity {
     private DatabaseHelper mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
     public SQLiteDatabase sdb;
 
-    MyLoading myLoading;
+    //MyLoading myLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,8 +35,8 @@ public class full_news extends Activity {
 
         setContentView(R.layout.click_news);
 
-        myLoading = new MyLoading(this);
-        myLoading.show();
+        //myLoading = new MyLoading(this);
+        //myLoading.show();
 
         position = getIntent().getIntExtra("position", 0);// default пусть 0
         get_full_news gfn = new get_full_news();
@@ -49,10 +49,10 @@ public class full_news extends Activity {
         @Override
         protected String doInBackground(Integer... numbers) {
 
-                String article = "";
-                int nom = numbers[0];
-                Document doc = null;
-                Element mBody;
+            String article = "";
+            int nom = numbers[0];
+            Document doc = null;
+            Element mBody;
 
             sdb = mDatabaseHelper.getReadableDatabase();
 
@@ -60,8 +60,8 @@ public class full_news extends Activity {
             Cursor cursor = sdb.rawQuery(query, null);
 
             int i = 0;
-            while (i!=(nom+1)) {
-            cursor.moveToNext();
+            while (i != (nom + 1)) {
+                cursor.moveToNext();
                 i++;
             }
 
@@ -72,11 +72,11 @@ public class full_news extends Activity {
             cursor.close();
 
             try {
-                    doc = Jsoup.connect(src_text).userAgent("Chrome").get();
-                    mBody = doc.select("div.news").first();
+                doc = Jsoup.connect(src_text).userAgent("Chrome").get();
+                mBody = doc.select("div.news").first();
 
-                    Elements link = mBody.select("div.field.field-name-body.field-type-text-with-summary.field-label-hidden");
-                    article = link.text();
+                Elements link = mBody.select("div.field.field-name-body.field-type-text-with-summary.field-label-hidden");
+                article = link.text();
 
                 //добавить в бд
                 sdb = mDatabaseHelper.getWritableDatabase();
@@ -94,7 +94,7 @@ public class full_news extends Activity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            TextView infoTextView = (TextView)findViewById(R.id.news_content);
+            TextView infoTextView = (TextView) findViewById(R.id.news_content);
             infoTextView.setText("     " + result);
 
             //myLoading.dismiss();

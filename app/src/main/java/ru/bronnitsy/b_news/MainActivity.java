@@ -57,9 +57,8 @@ public class MainActivity extends ActionBarActivity {
         checkInternet.execute();
 
         try {
-            //Thread.sleep(10000);
             checkInt = checkInternet.get();
-        } catch (InterruptedException|ExecutionException e) {
+        } catch (InterruptedException | ExecutionException e) {
             e.printStackTrace();
         }
         if (!checkInt) {
@@ -79,7 +78,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView<?> a, View v, int position, long id) {
                 //ListItem newsData = (ListItem) listView.getItemAtPosition(position);
-                Intent intent = new Intent(MainActivity.this, full_news.class);
+                Intent intent = new Intent(MainActivity.this, FullNews.class);
                 intent.putExtra("position", position);
                 startActivity(intent);
 
@@ -201,7 +200,7 @@ public class MainActivity extends ActionBarActivity {
                 String insertQuery = "INSERT or IGNORE INTO " +
                         DatabaseHelper.DB_TABLE +
                         " (" + DatabaseHelper.COLUMN_TITLE + ", " + DatabaseHelper.COLUMN_DATE + ", " + DatabaseHelper.COLUMN_IMAGE + ", " + DatabaseHelper.COLUMN_SRCFULLNEWS + ") VALUES (" +
-                        "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ", " + "'" + src_full_news[i] + "'" +")";
+                        "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ", " + "'" + src_full_news[i] + "'" + ")";
                 sqdb.execSQL(insertQuery);
             }
 
@@ -275,8 +274,9 @@ public class MainActivity extends ActionBarActivity {
     class CheckInternet extends AsyncTask<Void, Void, Boolean> {
 
         public boolean isInternetConnection = true;
+
         @Override
-        protected void onPreExecute(){
+        protected void onPreExecute() {
             super.onPreExecute();
 //            MyLoading mm = new MyLoading();
 //            mm.show();
