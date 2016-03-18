@@ -7,8 +7,10 @@ package ru.bronnitsy.b_news;
 import android.app.Activity;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import org.jsoup.Jsoup;
@@ -23,52 +25,44 @@ public class FullNews extends Activity {
     public static String[] text = new String[MainActivity.n];
     public static String src_text = "";
     public static int position;
+    public ProgressBar progressBar;
 
     private DatabaseHelper mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
     public SQLiteDatabase sdb;
-
-    //MyLoading myLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.click_news);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        progressBar.getIndeterminateDrawable().setColorFilter(Color.BLUE, android.graphics.PorterDuff.Mode.MULTIPLY);
 
         position = getIntent().getIntExtra("position", 0);
 
-        get_full_news gfn = new get_full_news();
+        GetFullNews gfn = new GetFullNews();
         gfn.execute(position);
 
     }
 
-    class get_full_news extends AsyncTask<Integer, Void, String> {
+    class GetFullNews extends AsyncTask<Integer, Void, String> {
 
         @Override
         protected String doInBackground(Integer... numbers) {
 
             String article = "";
-            int nom = numbers[0];
+            int id = numbers[0];
             Document doc = null;
             Element mBody;
 
             sdb = mDatabaseHelper.getReadableDatabase();
 
-            //Нужно ссылаться на id
-
-            String query = "SELECT * " + " FROM " + DatabaseHelper.DB_TABLE + " order by " + DatabaseHelper.COLUMN_ID + " DESC LIMIT " + MainActivity.n + "";
+            String query = "SELECT " + DatabaseHelper.COLUMN_SRCFULLNEWS + " FROM " + DatabaseHelper.DB_TABLE + " where " + DatabaseHelper.COLUMN_ID + " = " + id + "";
             Cursor cursor = sdb.rawQuery(query, null);
-
-            int i = 0;
-            while (i != (nom + 1)) {
-                cursor.moveToNext();
-                i++;
-            }
+            cursor.moveToNext();
 
             src_text = cursor.getString(cursor
                     .getColumnIndex(DatabaseHelper.COLUMN_SRCFULLNEWS));
-            int src_id = cursor.getInt(cursor
-                    .getColumnIndex(DatabaseHelper.COLUMN_ID));
             cursor.close();
 
             try {
@@ -80,12 +74,21 @@ public class FullNews extends Activity {
 
                 //добавить в бд
                 sdb = mDatabaseHelper.getWritableDatabase();
-                String insertQuery = "UPDATE or IGNORE " + DatabaseHelper.DB_TABLE +
-                        " set " + DatabaseHelper.COLUMN_TEXT + " = " + "'" + article + "'" + " WHERE " + DatabaseHelper.COLUMN_ID + " = " + src_id;
+                String insertQuery = "UPDATE " + DatabaseHelper.DB_TABLE +
+                        " set " + DatabaseHelper.COLUMN_TEXT + " = " + "'" + article + "'" + " WHERE " + DatabaseHelper.COLUMN_ID + " = " + id;
                 sdb.execSQL(insertQuery);
 
             } catch (IOException e) {
                 //чтение из бд
+                sdb = mDatabaseHelper.getReadableDatabase();
+
+                query = "SELECT " + DatabaseHelper.COLUMN_TEXT + " FROM " + DatabaseHelper.DB_TABLE + " where " + DatabaseHelper.COLUMN_ID + " = " + id + "";
+                cursor = sdb.rawQuery(query, null);
+                cursor.moveToNext();
+
+                article = cursor.getString(cursor
+                        .getColumnIndex(DatabaseHelper.COLUMN_TEXT));
+                cursor.close();
             }
 
             return article;
@@ -97,6 +100,7 @@ public class FullNews extends Activity {
             TextView infoTextView = (TextView) findViewById(R.id.news_content);
             infoTextView.setText("     " + result);
 
+            progressBar.setVisibility(ProgressBar.GONE);
         }
 
     }

@@ -68,8 +68,19 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public void onItemClick(AdapterView<?> a, View v, int position, long id) {
+
+                sdb = mDatabaseHelper.getReadableDatabase();
+
+                String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " where " + DatabaseHelper.COLUMN_DATE + " = " + "'" + date[position] + "'" + "";
+                Cursor cursor = sdb.rawQuery(query, null);
+                cursor.moveToNext();
+
+                int _id = cursor.getInt(cursor
+                        .getColumnIndex(DatabaseHelper.COLUMN_ID));
+                cursor.close();
+
                 Intent intent = new Intent(MainActivity.this, FullNews.class);
-                intent.putExtra("position", position);
+                intent.putExtra("position", _id);
                 startActivity(intent);
 
                 overridePendingTransition(R.anim.tap_in_right, R.anim.back_in_left);
@@ -184,6 +195,8 @@ public class MainActivity extends ActionBarActivity {
                             .getColumnIndex(DatabaseHelper.COLUMN_TITLE));
                     date[i] = cursor.getString(cursor
                             .getColumnIndex(DatabaseHelper.COLUMN_DATE));
+                    src_full_news[i] = cursor.getString(cursor
+                            .getColumnIndex(DatabaseHelper.COLUMN_SRCFULLNEWS));
                     i++;
                 }
                 cursor.close();
@@ -194,6 +207,7 @@ public class MainActivity extends ActionBarActivity {
             list.add(headlines);
             list.add(date);
             list.add(images);
+            list.add(src_full_news);
 
             return list;
         }
@@ -210,6 +224,7 @@ public class MainActivity extends ActionBarActivity {
             headlines = list.get(0);
             date = list.get(1);
             images = list.get(2);
+            src_full_news = list.get(3);
 
             setListView();
         }
