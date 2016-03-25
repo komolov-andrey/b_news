@@ -69,20 +69,25 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onItemClick(AdapterView<?> a, View v, int position, long id) {
 
-                sdb = mDatabaseHelper.getReadableDatabase();
+                try {
+                    sdb = mDatabaseHelper.getReadableDatabase();
 
-                String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " where " + DatabaseHelper.COLUMN_DATE + " = " + "'" + date[position] + "'" + "";
-                Cursor cursor = sdb.rawQuery(query, null);
-                cursor.moveToNext();
+                    String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " where " + DatabaseHelper.COLUMN_DATE + " = " + "'" + date[position] + "'" + "";
+                    Cursor cursor = sdb.rawQuery(query, null);
+                    cursor.moveToNext();
 
-                int _id = cursor.getInt(cursor
-                        .getColumnIndex(DatabaseHelper.COLUMN_ID));
-                cursor.close();
+                    int _id = cursor.getInt(cursor
+                            .getColumnIndex(DatabaseHelper.COLUMN_ID));
+                    cursor.close();
 
-                Intent intent = new Intent(MainActivity.this, FullNews.class);
-                intent.putExtra("position", _id);
-                startActivity(intent);
+                    Intent intent = new Intent(MainActivity.this, FullNews.class);
+                    intent.putExtra("position", _id);
+                    startActivity(intent);
+                }   catch (Exception e){
 
+                    Toast.makeText(getApplicationContext(),
+                            "Ошибка загрузки данных", Toast.LENGTH_SHORT).show();
+                    }
                 overridePendingTransition(R.anim.tap_in_right, R.anim.back_in_left);
             }
         });
@@ -135,7 +140,7 @@ public class MainActivity extends ActionBarActivity {
                 isInternetConnection = false;
 
                 Document doc = null;
-                doc = Jsoup.connect("http://www.bronnitsy.ru/news").userAgent("Chrome").get();
+                doc = Jsoup.connect("http://www.bronnitsy.ru/news").userAgent("Chrome").timeout(7000).get();
 
                 Element mBody;
 
@@ -181,25 +186,29 @@ public class MainActivity extends ActionBarActivity {
 
             } catch (Exception e) {
 
-                sdb = mDatabaseHelper.getReadableDatabase();
+                try {
+                    sdb = mDatabaseHelper.getReadableDatabase();
 
-                String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " ORDER BY " + DatabaseHelper.COLUMN_ID + " DESC LIMIT " + n + "";
-                Cursor cursor = sdb.rawQuery(query, null);
+                    String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " ORDER BY " + DatabaseHelper.COLUMN_ID + " DESC LIMIT " + n + "";
+                    Cursor cursor = sdb.rawQuery(query, null);
 
-                int i = 0;
-                while (cursor.moveToNext()) {
+                    int i = 0;
+                    while (cursor.moveToNext()) {
 
-                    images[i] = cursor.getString(cursor
-                            .getColumnIndex(DatabaseHelper.COLUMN_IMAGE));
-                    headlines[i] = cursor.getString(cursor
-                            .getColumnIndex(DatabaseHelper.COLUMN_TITLE));
-                    date[i] = cursor.getString(cursor
-                            .getColumnIndex(DatabaseHelper.COLUMN_DATE));
-                    src_full_news[i] = cursor.getString(cursor
-                            .getColumnIndex(DatabaseHelper.COLUMN_SRCFULLNEWS));
-                    i++;
+                        images[i] = cursor.getString(cursor
+                                .getColumnIndex(DatabaseHelper.COLUMN_IMAGE));
+                        headlines[i] = cursor.getString(cursor
+                                .getColumnIndex(DatabaseHelper.COLUMN_TITLE));
+                        date[i] = cursor.getString(cursor
+                                .getColumnIndex(DatabaseHelper.COLUMN_DATE));
+                        src_full_news[i] = cursor.getString(cursor
+                                .getColumnIndex(DatabaseHelper.COLUMN_SRCFULLNEWS));
+                        i++;
+                    }
+                    cursor.close();
+                } catch (Exception e1){
+
                 }
-                cursor.close();
             }
 
             List<String[]> list = new ArrayList<>();

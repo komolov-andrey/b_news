@@ -12,6 +12,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -42,7 +43,6 @@ public class FullNews extends Activity {
 
         GetFullNews gfn = new GetFullNews();
         gfn.execute(position);
-
     }
 
     class GetFullNews extends AsyncTask<Integer, Void, String> {
@@ -66,7 +66,7 @@ public class FullNews extends Activity {
             cursor.close();
 
             try {
-                doc = Jsoup.connect(src_text).userAgent("Chrome").get();
+                doc = Jsoup.connect(src_text).userAgent("Chrome").timeout(7000).get();
                 mBody = doc.select("div.news").first();
 
                 Elements link = mBody.select("div.field.field-name-body.field-type-text-with-summary.field-label-hidden");
@@ -80,15 +80,19 @@ public class FullNews extends Activity {
 
             } catch (IOException e) {
                 //чтение из бд
-                sdb = mDatabaseHelper.getReadableDatabase();
+                try {
+                    sdb = mDatabaseHelper.getReadableDatabase();
 
-                query = "SELECT " + DatabaseHelper.COLUMN_TEXT + " FROM " + DatabaseHelper.DB_TABLE + " where " + DatabaseHelper.COLUMN_ID + " = " + id + "";
-                cursor = sdb.rawQuery(query, null);
-                cursor.moveToNext();
+                    query = "SELECT " + DatabaseHelper.COLUMN_TEXT + " FROM " + DatabaseHelper.DB_TABLE + " where " + DatabaseHelper.COLUMN_ID + " = " + id + "";
+                    cursor = sdb.rawQuery(query, null);
+                    cursor.moveToNext();
 
-                article = cursor.getString(cursor
-                        .getColumnIndex(DatabaseHelper.COLUMN_TEXT));
-                cursor.close();
+                    article = cursor.getString(cursor
+                            .getColumnIndex(DatabaseHelper.COLUMN_TEXT));
+                    cursor.close();
+                } catch (Exception e1){
+                    article = "Проблема с зугрузкой данных";
+                }
             }
 
             return article;
@@ -97,8 +101,16 @@ public class FullNews extends Activity {
         @Override
         protected void onPostExecute(String result) {
             super.onPostExecute(result);
-            TextView infoTextView = (TextView) findViewById(R.id.news_content);
-            infoTextView.setText("     " + result);
+
+            if (result == null){
+                Toast.makeText(getApplicationContext(),
+                        "Нет сохраненной информации", Toast.LENGTH_LONG).show();
+                finish();
+            }
+            else {
+                TextView infoTextView = (TextView) findViewById(R.id.news_content);
+                infoTextView.setText("     " + result);
+            }
 
             progressBar.setVisibility(ProgressBar.GONE);
         }
