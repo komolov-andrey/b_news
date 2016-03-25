@@ -6,6 +6,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,7 +26,7 @@ import org.jsoup.select.Elements;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity{
 
     public static final int n = 17;
     public String[] images = new String[n];
@@ -36,6 +37,7 @@ public class MainActivity extends ActionBarActivity {
     ProgressBar progressBar;
     private DatabaseHelper mDatabaseHelper;
     public SQLiteDatabase sdb;
+    private SwipeRefreshLayout mSwipeRefreshLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,11 +49,31 @@ public class MainActivity extends ActionBarActivity {
         progressBar.getIndeterminateDrawable().setColorFilter(Color.BLUE, android.graphics.PorterDuff.Mode.MULTIPLY);
         progressBar.setVisibility(ProgressBar.VISIBLE);
 
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swipe_container);
+        mSwipeRefreshLayout.setColorSchemeColors(
+                Color.RED, Color.GREEN, Color.BLUE, Color.CYAN);
+
+
         mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
+
+
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+
+            @Override
+            public void onRefresh () {
+                onStart();
+            }
+        });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
 
         LoadingData loadingData = new LoadingData();
         loadingData.execute();
     }
+
 
 
     private void setListView() {
@@ -92,6 +114,7 @@ public class MainActivity extends ActionBarActivity {
             }
         });
         progressBar.setVisibility(ProgressBar.GONE);
+        mSwipeRefreshLayout.setRefreshing(false);
     }
 
     private ArrayList<ListItem> getListData() {
