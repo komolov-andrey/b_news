@@ -56,22 +56,17 @@ public class MainActivity extends ActionBarActivity{
 
         mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
 
+        LoadingData loadingData = new LoadingData();
+        loadingData.execute();
 
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
             @Override
             public void onRefresh () {
-                onStart();
+                LoadingData loadingData = new LoadingData();
+                loadingData.execute();
             }
         });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-
-        LoadingData loadingData = new LoadingData();
-        loadingData.execute();
     }
 
 
