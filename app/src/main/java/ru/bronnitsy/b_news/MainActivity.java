@@ -13,6 +13,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
+import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
@@ -100,14 +101,29 @@ public class MainActivity extends ActionBarActivity{
                     Intent intent = new Intent(MainActivity.this, FullNews.class);
                     intent.putExtra("position", _id);
                     startActivity(intent);
-                }   catch (Exception e){
+                } catch (Exception e) {
 
                     Toast.makeText(getApplicationContext(),
                             "Ошибка загрузки данных", Toast.LENGTH_SHORT).show();
-                    }
+                }
                 overridePendingTransition(R.anim.tap_in_right, R.anim.back_in_left);
             }
         });
+
+        listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(AbsListView view, int scrollState) {
+
+            }
+
+            @Override
+            public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
+                if (firstVisibleItem == 0)
+                    mSwipeRefreshLayout.setEnabled(true);
+                else mSwipeRefreshLayout.setEnabled(false);
+            }
+        });
+
         progressBar.setVisibility(ProgressBar.GONE);
         mSwipeRefreshLayout.setRefreshing(false);
     }

@@ -1,6 +1,7 @@
 package ru.bronnitsy.b_news;
 
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -19,6 +20,10 @@ public class about extends Activity {
         imgView.setImageResource(R.drawable.logo);
 
         TextView txtView = (TextView) findViewById(R.id.textView);
-        txtView.setText("Это неофициальный клиент\nВся информация взята с сайта \nhttp://www.bronnitsy.ru\n\nРазработчик Андрей Комолов");
+        try {
+            String versionNAme = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            txtView.setText("Это неофициальный клиент\nВся информация взята с сайта \nhttp://www.bronnitsy.ru\n\nРазработчик Андрей Комолов\n\n" + "Версия " + versionNAme);
+        }
+        catch (PackageManager.NameNotFoundException ex) {}
     }
 }
