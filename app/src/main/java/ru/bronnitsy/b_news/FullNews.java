@@ -31,6 +31,8 @@ public class FullNews extends Activity {
     private DatabaseHelper mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
     public SQLiteDatabase sdb;
 
+    //когда длтнный список нужно что-то другое передавать
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

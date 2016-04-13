@@ -23,7 +23,7 @@ public class about extends Activity {
         try {
             String versionNAme = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
             txtView.setText("Это неофициальный клиент\nВся информация взята с сайта \nhttp://www.bronnitsy.ru\n\nРазработчик Андрей Комолов\n\n" + "Версия " + versionNAme);
+        } catch (PackageManager.NameNotFoundException ex) {
         }
-        catch (PackageManager.NameNotFoundException ex) {}
     }
 }

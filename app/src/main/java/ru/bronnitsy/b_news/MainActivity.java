@@ -8,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -27,7 +28,7 @@ import org.jsoup.select.Elements;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MainActivity extends ActionBarActivity{
+public class MainActivity extends ActionBarActivity {
 
     public static final int n = 17;
     public String[] images = new String[n];
@@ -63,20 +64,19 @@ public class MainActivity extends ActionBarActivity{
         mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 
             @Override
-            public void onRefresh () {
+            public void onRefresh() {
                 LoadingData loadingData = new LoadingData();
                 loadingData.execute();
             }
         });
     }
 
-
-
+    CustomListAdapter adapter;
     private void setListView() {
 
         listView = (ListView) findViewById(R.id.custom_list);
         ArrayList<ListItem> listData = getListData();
-        listView.setAdapter(new CustomListAdapter(getApplicationContext(), listData));
+        listView.setAdapter(adapter = new CustomListAdapter(getApplicationContext(), listData));
 
         LayoutAnimationController controller = AnimationUtils
                 .loadLayoutAnimation(getApplicationContext(), R.anim.list_layout_controller);
@@ -121,6 +121,16 @@ public class MainActivity extends ActionBarActivity{
                 if (firstVisibleItem == 0)
                     mSwipeRefreshLayout.setEnabled(true);
                 else mSwipeRefreshLayout.setEnabled(false);
+
+                boolean loadMore = firstVisibleItem + visibleItemCount >= totalItemCount;
+
+                if (loadMore) {
+
+                    Log.i("count ", "" + totalItemCount);
+                    AddingData addingData = new AddingData();
+                    addingData.execute(totalItemCount);
+
+                }
             }
         });
 
@@ -209,13 +219,13 @@ public class MainActivity extends ActionBarActivity{
                     src_full_news[i] = "http://www.bronnitsy.ru" + links.attr("href");
 
 
-                SQLiteDatabase sqdb = mDatabaseHelper.getWritableDatabase();
-                String insertQuery = "INSERT or IGNORE INTO " +
-                        DatabaseHelper.DB_TABLE +
-                        " (" + DatabaseHelper.COLUMN_TITLE + ", " + DatabaseHelper.COLUMN_DATE + ", " + DatabaseHelper.COLUMN_IMAGE + ", " + DatabaseHelper.COLUMN_SRCFULLNEWS + ") VALUES (" +
-                        "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ", " + "'" + src_full_news[i] + "'" + ")";
-                sqdb.execSQL(insertQuery);
-            }
+                    SQLiteDatabase sqdb = mDatabaseHelper.getWritableDatabase();
+                    String insertQuery = "INSERT or IGNORE INTO " +
+                            DatabaseHelper.DB_TABLE +
+                            " (" + DatabaseHelper.COLUMN_TITLE + ", " + DatabaseHelper.COLUMN_DATE + ", " + DatabaseHelper.COLUMN_IMAGE + ", " + DatabaseHelper.COLUMN_SRCFULLNEWS + ") VALUES (" +
+                            "'" + headlines[i] + "'" + ", " + "'" + date[i] + "'" + ", " + "'" + images[i] + "'" + ", " + "'" + src_full_news[i] + "'" + ")";
+                    sqdb.execSQL(insertQuery);
+                }
                 isInternetConnection = true;
 
             } catch (Exception e) {
@@ -240,7 +250,7 @@ public class MainActivity extends ActionBarActivity{
                         i++;
                     }
                     cursor.close();
-                } catch (Exception e1){
+                } catch (Exception e1) {
 
                 }
             }
@@ -270,6 +280,61 @@ public class MainActivity extends ActionBarActivity{
             src_full_news = list.get(3);
 
             setListView();
+        }
+    }
+
+    class AddingData extends AsyncTask<Integer, Void, ArrayList<ListItem>> {
+
+        @Override
+        protected ArrayList<ListItem> doInBackground(Integer... count) {
+
+            ArrayList<ListItem> list = new ArrayList<>();
+
+            try {
+                sdb = mDatabaseHelper.getReadableDatabase();
+
+                String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " ORDER BY " + DatabaseHelper.COLUMN_ID + " DESC";
+                Cursor cursor = sdb.rawQuery(query, null);
+
+                if (cursor.getCount() >= count[0]) {
+                    cursor.moveToPosition(count[0] - 1);
+
+                    int i = 1;
+
+                    while ((cursor.moveToNext()) || (i <= n)) {
+                        ListItem newsData = new ListItem();
+
+                        images[i] = cursor.getString(cursor
+                                .getColumnIndex(DatabaseHelper.COLUMN_IMAGE));
+                        newsData.setUrl(images[i]);
+                        headlines[i] = cursor.getString(cursor
+                                .getColumnIndex(DatabaseHelper.COLUMN_TITLE));
+                        newsData.setHeadline(headlines[i]);
+                        date[i] = cursor.getString(cursor
+                                .getColumnIndex(DatabaseHelper.COLUMN_DATE));
+                        newsData.setDate(date[i]);
+
+                        list.add(newsData);
+                        i++;
+                    }
+                    cursor.close();
+                }
+            } catch (Exception e) {
+                //обработать если нет в БД или не надо
+            }
+
+            return list;
+        }
+
+        @Override
+        protected void onPostExecute(ArrayList<ListItem> results) {
+            super.onPostExecute(results);
+
+            adapter.add(results);
+            adapter.notifyDataSetChanged();
+            int index = listView.getFirstVisiblePosition();
+            int top = (listView.getChildAt(0) == null) ? 0 : listView.getChildAt(0).getTop();
+            listView.setSelectionFromTop(index, top);
         }
     }
 }

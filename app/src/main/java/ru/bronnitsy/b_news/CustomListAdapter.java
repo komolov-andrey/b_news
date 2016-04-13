@@ -43,6 +43,10 @@ public class CustomListAdapter extends BaseAdapter {
         return listData.size();
     }
 
+    public void add(ArrayList<ListItem> data) {
+        this.listData.addAll(data);
+    }
+
     @Override
     public Object getItem(int position) {
         return listData.get(position);
