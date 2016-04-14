@@ -8,7 +8,6 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -16,6 +15,7 @@ import android.view.animation.AnimationUtils;
 import android.view.animation.LayoutAnimationController;
 import android.widget.AbsListView;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Toast;
@@ -37,6 +37,7 @@ public class MainActivity extends ActionBarActivity {
     public String[] src_full_news = new String[n];
     ListView listView;
     ProgressBar progressBar;
+    Button up;
     private DatabaseHelper mDatabaseHelper;
     public SQLiteDatabase sdb;
     private SwipeRefreshLayout mSwipeRefreshLayout;
@@ -55,6 +56,8 @@ public class MainActivity extends ActionBarActivity {
         mSwipeRefreshLayout.setColorSchemeColors(
                 Color.RED, Color.GREEN, Color.BLUE, Color.CYAN);
 
+        up = (Button) findViewById(R.id.button);
+        up.setVisibility(View.INVISIBLE);
 
         mDatabaseHelper = new DatabaseHelper(this, "news_db.db", null, 1);
 
@@ -118,15 +121,20 @@ public class MainActivity extends ActionBarActivity {
 
             @Override
             public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-                if (firstVisibleItem == 0)
+                if (firstVisibleItem == 0) {
                     mSwipeRefreshLayout.setEnabled(true);
-                else mSwipeRefreshLayout.setEnabled(false);
+                    up.setVisibility(View.GONE);
+                }
+                else {
+                    mSwipeRefreshLayout.setEnabled(false);
+                    up.setVisibility(View.VISIBLE);
+                }
 
                 boolean loadMore = firstVisibleItem + visibleItemCount >= totalItemCount;
 
                 if (loadMore) {
 
-                    Log.i("count ", "" + totalItemCount);
+                    //Log.i("count ", "" + totalItemCount);
                     AddingData addingData = new AddingData();
                     addingData.execute(totalItemCount);
 
@@ -151,6 +159,11 @@ public class MainActivity extends ActionBarActivity {
             listMockData.add(newsData);
         }
         return listMockData;
+    }
+
+    public void Click_up(View view)
+    {
+        listView.smoothScrollToPosition(0);
     }
 
     @Override

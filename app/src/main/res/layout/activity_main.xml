@@ -25,6 +25,18 @@
         android:dividerHeight="1dp">
     </ListView>
 
+    <Button
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@drawable/up"
+        android:id="@+id/button"
+        android:layout_gravity="right|bottom"
+        android:layout_marginRight="12dp"
+        android:layout_marginBottom="12dp"
+        android:clickable="true"
+        android:onClick="Click_up"
+        android:alpha="0.5" />
+
 </FrameLayout>
 
 </android.support.v4.widget.SwipeRefreshLayout>
