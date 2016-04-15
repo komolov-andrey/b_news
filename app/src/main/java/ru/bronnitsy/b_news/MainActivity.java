@@ -93,9 +93,9 @@ public class MainActivity extends ActionBarActivity {
                 try {
                     sdb = mDatabaseHelper.getReadableDatabase();
 
-                    String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " where " + DatabaseHelper.COLUMN_DATE + " = " + "'" + date[position] + "'" + "";
+                    String query = "SELECT * FROM " + DatabaseHelper.DB_TABLE + " order by " + DatabaseHelper.COLUMN_ID + " desc";
                     Cursor cursor = sdb.rawQuery(query, null);
-                    cursor.moveToNext();
+                    cursor.moveToPosition(position);
 
                     int _id = cursor.getInt(cursor
                             .getColumnIndex(DatabaseHelper.COLUMN_ID));
@@ -112,6 +112,8 @@ public class MainActivity extends ActionBarActivity {
                 overridePendingTransition(R.anim.tap_in_right, R.anim.back_in_left);
             }
         });
+        //flag
+        final int[] last_item = {1};
 
         listView.setOnScrollListener(new AbsListView.OnScrollListener() {
             @Override
@@ -132,12 +134,11 @@ public class MainActivity extends ActionBarActivity {
 
                 boolean loadMore = firstVisibleItem + visibleItemCount >= totalItemCount;
 
-                if (loadMore) {
+                if (last_item[0] != totalItemCount && loadMore) {
 
-                    //Log.i("count ", "" + totalItemCount);
-                    AddingData addingData = new AddingData();
-                    addingData.execute(totalItemCount);
-
+                        AddingData addingData = new AddingData();
+                        addingData.execute(totalItemCount);
+                        last_item[0] = firstVisibleItem + visibleItemCount;
                 }
             }
         });
@@ -345,9 +346,9 @@ public class MainActivity extends ActionBarActivity {
 
             adapter.add(results);
             adapter.notifyDataSetChanged();
-            int index = listView.getFirstVisiblePosition();
-            int top = (listView.getChildAt(0) == null) ? 0 : listView.getChildAt(0).getTop();
-            listView.setSelectionFromTop(index, top);
+//            int index = listView.getFirstVisiblePosition();
+//            int top = (listView.getChildAt(0) == null) ? 0 : listView.getChildAt(0).getTop();
+//            listView.setSelectionFromTop(index, top);
         }
     }
 }
