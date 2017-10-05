@@ -71,7 +71,7 @@ public class FullNews extends Activity {
                 doc = Jsoup.connect(src_text).userAgent("Chrome").timeout(7000).get();
                 mBody = doc.select("div.news").first();
 
-                Elements link = mBody.select("div.field.field-name-body.field-type-text-with-summary.field-label-hidden");
+                Elements link = mBody.select("div.post_full.row");
                 article = link.text();
 
                 //добавить в бд

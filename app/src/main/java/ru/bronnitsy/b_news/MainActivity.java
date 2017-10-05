@@ -206,28 +206,25 @@ public class MainActivity extends ActionBarActivity {
 
                 for (int i = n - 1; i >= 0; i--) {
 
-                    mBody = doc.select("div.news").get(i);
-                    Elements links = mBody.select("a[href]");
+                    mBody = doc.select("div.post_title").get(i);
 
-                    headlines[i] = links.attr("title");
+                    // заголовок статьи
+                    headlines[i] = mBody.select("a.alinks").text();
 
                     //получение ссылки на фото статьи
+                    mBody = doc.select("div.post_img").get(i);
+                    Elements links = mBody.select("[src]");
 
-                    mBody = doc.select("div.news").get(i);
-                    links = mBody.select("[src]");
-
-                    images[i] = links.attr("src");
+                    images[i] = "http://www.bronnitsy.ru" + links.attr("src");
 
                     //Получение даты написания статьи
-
-                    mBody = doc.select("div.news").get(i);
-                    String time = mBody.select("div.video_total").text();
+                    mBody = doc.select("div.post_com_inf").get(i);
+                    String time = mBody.select("div.post_date").text();
 
                     date[i] = time;
 
                     //Получение ссылки на полное описание новости
-
-                    mBody = doc.select("div.news").get(i);
+                    mBody = doc.select("div.post_title").get(i);
                     links = mBody.select("a[href]");
 
                     src_full_news[i] = "http://www.bronnitsy.ru" + links.attr("href");
